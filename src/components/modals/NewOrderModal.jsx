@@ -1,8 +1,36 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { ordersAPI, countriesAPI } from '../../services/api';
+import { ordersAPI, countriesAPI, aiAPI } from '../../services/api';
 import '../../styles/modals/Modal.css';
 import '../../styles/modals/NewOrderModal.css';
+
+const parseAIResponse = (content) => {
+  if (!content) return null;
+
+  try {
+    return JSON.parse(content);
+  } catch {
+    const jsonBlock = content.match(/```json\s*([\s\S]*?)\s*```/i)?.[1] || content.match(/\{[\s\S]*\}/)?.[0];
+    if (!jsonBlock) return null;
+
+    try {
+      return JSON.parse(jsonBlock);
+    } catch {
+      return null;
+    }
+  }
+};
+
+const findCommodityByName = (commodities, name) => {
+  if (!name) return null;
+
+  const normalizedName = name.trim().toLowerCase();
+  return (
+    commodities.find(c => c.name?.trim().toLowerCase() === normalizedName) ||
+    commodities.find(c => c.name?.trim().toLowerCase().includes(normalizedName)) ||
+    commodities.find(c => normalizedName.includes(c.name?.trim().toLowerCase()))
+  );
+};
 
 function NewOrderModal({ commodities, cart, setCart, country, userRole, currentUser, onClose, onSubmit, draft, onSaveDraft }) {
   const [draftId, setDraftId] = useState(draft?.id || null);
@@ -17,6 +45,9 @@ function NewOrderModal({ commodities, cart, setCart, country, userRole, currentU
   const [interventionTypes, setInterventionTypes] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSummary, setAiSummary] = useState('');
+  const [aiRecommendations, setAiRecommendations] = useState([]);
   
   // Lab team can select target country
   const isLabTeam = userRole === 'Laboratory Team';
@@ -111,8 +142,94 @@ function NewOrderModal({ commodities, cart, setCart, country, userRole, currentU
   };
 
   const addItem = (commodity) => {
+    if (!commodity) return;
     if (!cart.find(c => c.commodity.id === commodity.id)) {
       setCart([...cart, { commodity, qty: 1 }]);
+    }
+  };
+
+  const handleGenerateRecommendations = async () => {
+    if (!interventionType) {
+      toast.error('Select an intervention type before requesting AI recommendations');
+      return;
+    }
+
+    setAiLoading(true);
+    setAiSummary('');
+    setAiRecommendations([]);
+
+    try {
+      const availableCatalog = commodities.map(item => ({
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        unit: item.unit,
+        stock: item.stock,
+        price: item.price,
+        description: item.description
+      }));
+
+      const response = await aiAPI.chat([
+        {
+          role: 'system',
+          content: [
+            'You are a WHO AFRO logistics assistant.',
+            'Use only the supplied commodity catalog.',
+            'Recommend the most relevant items for the intervention context.',
+            'Return strict JSON with this shape:',
+            '{"summary":"...", "recommendations":[{"name":"exact catalog item name","reason":"...", "priority":"High|Medium|Low"}]}'
+          ].join(' ')
+        },
+        {
+          role: 'user',
+          content: JSON.stringify({
+            requestContext: {
+              interventionType,
+              isOutbreak,
+              targetCountry: isLabTeam ? targetCountry : deliveryCountry || country,
+              requestingUser: currentUser?.name || currentUser?.email || 'Unknown user',
+              priority,
+              notes,
+              currentCart: cart.map(item => ({
+                name: item.commodity.name,
+                quantity: item.qty
+              }))
+            },
+            availableCatalog
+          })
+        }
+      ], {
+        temperature: 0.2,
+        maxTokens: 1000
+      });
+
+      const content = response?.data?.choices?.[0]?.message?.content || '';
+      const parsed = parseAIResponse(content);
+
+      if (!parsed?.recommendations || !Array.isArray(parsed.recommendations)) {
+        throw new Error('AI response was not in the expected format');
+      }
+
+      const matchedRecommendations = parsed.recommendations
+        .map(rec => {
+          const commodity = findCommodityByName(commodities, rec.name);
+          if (!commodity) return null;
+
+          return { ...rec, commodity };
+        })
+        .filter(Boolean);
+
+      setAiSummary(parsed.summary || 'Recommended items based on the live BMS catalog.');
+      setAiRecommendations(matchedRecommendations);
+
+      if (matchedRecommendations.length === 0) {
+        toast.error('AI returned suggestions, but none matched the current BMS catalog exactly');
+      }
+    } catch (err) {
+      console.error('AI recommendation error:', err);
+      toast.error(err.message || 'Failed to generate AI recommendations');
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -288,8 +405,59 @@ function NewOrderModal({ commodities, cart, setCart, country, userRole, currentU
                     <option key={c.id} value={c.id}>
                       {c.name} - ${parseFloat(c.price).toFixed(2)}/{c.unit}
                     </option>
-                  ))}
+                ))}
               </select>
+            </div>
+
+            <div className="ai-recommendation-panel">
+              <div className="ai-recommendation-header">
+                <div>
+                  <h4>AI Recommendations</h4>
+                  <p>Uses Azure AI with the live BMS commodity list</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateRecommendations}
+                  className="btn btn-outline ai-recommendation-btn"
+                  disabled={isSubmitting || isSavingDraft || aiLoading || commodities.length === 0}
+                >
+                  {aiLoading ? 'Generating...' : 'Suggest Items'}
+                </button>
+              </div>
+
+              {aiSummary && <p className="ai-recommendation-summary">{aiSummary}</p>}
+
+              {aiRecommendations.length > 0 && (
+                <div className="ai-recommendation-list">
+                  {aiRecommendations.map(({ commodity, reason, priority: recPriority }) => {
+                    const alreadyAdded = cart.some(item => item.commodity.id === commodity.id);
+                    return (
+                      <div key={commodity.id} className="ai-recommendation-item">
+                        <div className="ai-recommendation-copy">
+                          <div className="ai-recommendation-name-row">
+                            <span className="ai-recommendation-name">{commodity.name}</span>
+                            <span className={`ai-recommendation-priority ${String(recPriority || '').toLowerCase()}`}>
+                              {recPriority || 'Recommended'}
+                            </span>
+                          </div>
+                          <div className="ai-recommendation-meta">
+                            {commodity.category} · {commodity.unit} · Stock {commodity.stock}
+                          </div>
+                          <p>{reason}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => addItem(commodity)}
+                          className="btn btn-primary ai-add-btn"
+                          disabled={alreadyAdded || isSubmitting}
+                        >
+                          {alreadyAdded ? 'Added' : 'Add'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Cart Items */}

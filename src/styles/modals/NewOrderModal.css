@@ -173,6 +173,121 @@
   border-color: #009ADE;
 }
 
+.ai-recommendation-panel {
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.ai-recommendation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ai-recommendation-header h4 {
+  margin: 0 0 4px 0;
+  color: #1A2B4A;
+  font-size: 14px;
+}
+
+.ai-recommendation-header p {
+  margin: 0;
+  color: #64748B;
+  font-size: 12px;
+}
+
+.ai-recommendation-btn {
+  white-space: nowrap;
+}
+
+.ai-recommendation-summary {
+  margin: 12px 0 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #334155;
+}
+
+.ai-recommendation-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-recommendation-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: #F8FAFC;
+  border-radius: 8px;
+}
+
+.ai-recommendation-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.ai-recommendation-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.ai-recommendation-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A2B4A;
+}
+
+.ai-recommendation-meta {
+  font-size: 12px;
+  color: #64748B;
+  margin-bottom: 6px;
+}
+
+.ai-recommendation-copy p {
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.ai-recommendation-priority {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.ai-recommendation-priority.high {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+
+.ai-recommendation-priority.medium {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.ai-recommendation-priority.low {
+  background: #DCFCE7;
+  color: #15803D;
+}
+
+.ai-add-btn {
+  min-width: 84px;
+  padding: 10px 12px;
+}
+
 /* Cart Container */
 .cart-container {
   flex: 1;

@@ -1,29 +1,53 @@
-import { generateText } from "ai"
-import { groq } from "@ai-sdk/groq"
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api"
+
+async function requestAI(messages: Array<{ role: string; content: string }>, maxTokens = 800): Promise<string> {
+  const token = localStorage.getItem("hcoms_token")
+  const response = await fetch(`${API_BASE_URL}/ai/chat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({
+      messages,
+      options: {
+        maxTokens,
+        temperature: 0.3,
+      },
+    }),
+  })
+
+  const payload = await response.json()
+
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.message || "Failed to generate AI response")
+  }
+
+  return payload.data?.choices?.[0]?.message?.content || ""
+}
 
 export async function generateItemExplanation(item: any, question: string): Promise<string> {
   try {
-    const { text } = await generateText({
-      model: groq("llama-3.1-8b-instant"),
-      system: `You are a WHO emergency response equipment expert with extensive knowledge of medical equipment, emergency kits, and field operations. Provide detailed, accurate, and practical information about WHO emergency response equipment.
-
-Key guidelines:
-- Focus on practical usage, safety, and emergency response contexts
-- Include specific technical details when relevant
-- Mention WHO standards and protocols when applicable
-- Consider field conditions and resource constraints
-- Provide actionable advice for emergency responders`,
-      prompt: `Equipment: ${item.name}
+    return await requestAI(
+      [
+        {
+          role: "system",
+          content:
+            "You are a WHO emergency response equipment expert. Give practical, accurate, field-oriented guidance with safety and logistics considerations.",
+        },
+        {
+          role: "user",
+          content: `Equipment: ${item.name}
 Category: ${item.category}
 Description: ${item.description || "No description available"}
 Specifications: ${item.specifications ? JSON.stringify(item.specifications) : "No specifications available"}
 
 Question: ${question}
-
-Please provide a comprehensive answer about this WHO emergency response equipment. Include practical usage information, safety considerations, and any relevant WHO protocols or standards.`,
-    })
-
-    return text
+`,
+        },
+      ],
+      700,
+    )
   } catch (error) {
     console.error("Error generating item explanation:", error)
     throw new Error("Failed to generate explanation")
@@ -32,27 +56,26 @@ Please provide a comprehensive answer about this WHO emergency response equipmen
 
 export async function generateCategoryOverview(category: string, items: any[]): Promise<string> {
   try {
-    const { text } = await generateText({
-      model: groq("llama-3.1-8b-instant"),
-      system: `You are a WHO emergency response equipment expert. Provide overview information about equipment categories and their role in emergency response.`,
-      prompt: `Category: ${category}
+    return await requestAI(
+      [
+        {
+          role: "system",
+          content:
+            "You are a WHO emergency response equipment expert. Provide practical category-level overviews for emergency operations staff.",
+        },
+        {
+          role: "user",
+          content: `Category: ${category}
 Number of items: ${items.length}
 Sample items: ${items
-        .slice(0, 5)
-        .map((item) => item.name)
-        .join(", ")}
-
-Please provide a comprehensive overview of this equipment category and its importance in WHO emergency response operations. Include:
-- Purpose and role in emergency response
-- Key characteristics of equipment in this category
-- When and where this equipment is typically deployed
-- Critical considerations for field use
-- How this category supports WHO emergency response objectives
-
-Keep it informative and practical for emergency response personnel.`,
-    })
-
-    return text
+            .slice(0, 5)
+            .map((item) => item.name)
+            .join(", ")}
+`,
+        },
+      ],
+      700,
+    )
   } catch (error) {
     console.error("Error generating category overview:", error)
     throw new Error("Failed to generate category overview")

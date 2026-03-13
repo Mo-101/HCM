@@ -1,14 +1,15 @@
 const jwt = require('jsonwebtoken');
 const { User, Session } = require('../models');
 
-const isDevAuthBypassEnabled = () => process.env.DEV_AUTH_BYPASS === 'true';
+const isDevAuthBypassEnabled = () =>
+  process.env.DEV_AUTH_BYPASS === 'true' || process.env.VITE_DEV_AUTH_BYPASS === 'true';
 
 const getDevBypassUser = () => ({
   id: 1,
-  email: process.env.DEV_AUTH_EMAIL || 'super.admin@who.int',
-  name: process.env.DEV_AUTH_NAME || 'Development Admin',
-  role: process.env.DEV_AUTH_ROLE || 'Super Admin',
-  country: process.env.DEV_AUTH_COUNTRY || 'Nigeria',
+  email: process.env.DEV_AUTH_EMAIL || process.env.VITE_DEV_AUTH_EMAIL || 'super.admin@who.int',
+  name: process.env.DEV_AUTH_NAME || process.env.VITE_DEV_AUTH_NAME || 'Development Admin',
+  role: process.env.DEV_AUTH_ROLE || process.env.VITE_DEV_AUTH_ROLE || 'Super Admin',
+  country: process.env.DEV_AUTH_COUNTRY || process.env.VITE_DEV_AUTH_COUNTRY || 'Nigeria',
   is_active: true,
   osl_admin_level: 0
 });

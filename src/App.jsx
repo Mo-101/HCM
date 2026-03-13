@@ -71,7 +71,7 @@ function App() {
 
       const [ordersRes, commoditiesRes, statsRes, warehousesRes] = await Promise.all([
         ordersAPI.getAll(),
-        commoditiesAPI.getAll(),
+        commoditiesAPI.getAll({ limit: 1000 }),
         ordersAPI.getStatistics(),
         commoditiesAPI.getWarehouses()
       ]);
@@ -494,6 +494,7 @@ function App() {
                 stats={dashboardStats}
                 role={currentUser.role}
                 orders={orders}
+                commodities={commodities}
                 onViewOrder={handleViewOrder}
                 currentUser={currentUser}
               />

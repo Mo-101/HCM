@@ -6,6 +6,7 @@ A comprehensive full-stack web application for managing health commodity orders 
 ## 🌟 Key Features
 
 ### 🔐 Authentication & Security
+
 - **WHO Email Validation**: Only @who.int email addresses are allowed
 - **JWT-based Authentication**: Secure token-based authentication
 - **Session Management**: Track active sessions across devices
@@ -24,6 +25,7 @@ A comprehensive full-stack web application for managing health commodity orders 
 | **Super Admin** | Full system access, user management, activity monitoring |
 
 ### 📋 Order Management
+
 - **Order Workflow**: Submit → Lab Review → Forward to OSL → Approve → Fulfill → Ship
 - **PATEO Integration**: Required payment authorization for all orders
 - **Intervention Types**: Database-driven intervention type selection
@@ -34,6 +36,7 @@ A comprehensive full-stack web application for managing health commodity orders 
 - **Item Management**: Add/remove/modify items during review process
 
 ### 🏭 Multi-Warehouse Inventory
+
 - **Dual Warehouse Support**: Nairobi (NBO) and Dakar (DKR) regional hubs
 - **Stock per Warehouse**: Track inventory levels by location
 - **Smart Auto-Fulfill**: Automatically fulfill from closest warehouse
@@ -42,6 +45,7 @@ A comprehensive full-stack web application for managing health commodity orders 
 - **Low Stock Alerts**: Automatic threshold warnings
 
 ### 📦 Shipment Management
+
 - **Per-Warehouse Shipments**: Create separate shipments for each fulfilling warehouse
 - **Delivery Period**: Estimated arrival date range (from/to)
 - **Tracking Information**: Carrier, tracking number, shipping documents
@@ -52,24 +56,28 @@ A comprehensive full-stack web application for managing health commodity orders 
 Complete operations management with four main sections:
 
 #### 📊 Dashboard
+
 - Procurement overview (POs, pending, in-transit, total value)
 - Warehouse status (stock levels, product counts, low stock warnings)
 - Low stock alerts with commodity and warehouse details
 - 30-day movement summary (inbound/outbound/transfer/adjustment)
 
 #### 📤 Outbound Management
+
 - View all outgoing shipments
 - Filter by status and warehouse
 - Update shipment status
 - Track deliveries
 
 #### 📦 Inventory Management
+
 - Record stock movements (Inbound, Outbound, Transfer, Adjustment, Return)
 - Complete audit trail with performer and timestamp
 - Transfer stock between warehouses
 - Filter by warehouse and movement type
 
 #### 🛒 Procurement Management
+
 - **Supplier Management**: Add/manage suppliers with contact info, lead times
 - **Purchase Orders**: Create POs with multiple line items
 - **PO Workflow**: Draft → Submitted → Confirmed → Shipped → Received
@@ -78,6 +86,7 @@ Complete operations management with four main sections:
 
 ### 📊 Dashboard Analytics
 Role-specific dashboard with interactive charts:
+
 - **Weekly Orders & Shipments Trend**: Line chart with configurable time range (4-24 weeks)
 - **Orders by Status**: Pie chart showing status distribution
 - **Orders by Priority**: Bar chart with color-coded priority levels
@@ -87,17 +96,20 @@ Role-specific dashboard with interactive charts:
 - **Dashboard Filters**: Filter all charts by country, status, priority, warehouse, and date range
 
 ### 📥 Data Export
+
 - **CSV Export**: Download filtered order data as CSV from the Orders view
 - **All Roles**: Export available to Country Office, Lab Team, OSL Team, and Super Admin
 - **Smart Filtering**: Exports respect all active search/filter criteria
 - **Columns**: Order ID, Country, PATEO Ref, Priority, Status, Warehouse, Split, Items, Intervention Type, Created By, Lab Reviewed By, OSL Approved By, Created Date, Updated Date
 
 ### 💬 Order Messaging
+
 - **In-Order Chat**: Real-time messaging within each order
 - **Message Badges**: Unread message count indicators on orders
 - **Cross-Role Communication**: All stakeholders can communicate on an order
 
 ### ⚙️ Super Admin Features
+
 - **User Management**: Create, edit, activate/deactivate, delete users
 - **Password Reset**: Reset user passwords with email notification
 - **Profile Settings**: Update personal information, change password
@@ -107,6 +119,7 @@ Role-specific dashboard with interactive charts:
 - **Warehouse Management**: Create and manage warehouse locations
 
 ### 🌍 Additional Features
+
 - **54 African Countries**: Database-driven country list by region
 - **Category Management**: Dynamic commodity categories
 - **Commodity Details**: Storage requirements, shelf life, manufacturer info
@@ -206,6 +219,7 @@ hcoms-app/
 ## 🚀 Installation
 
 ### Prerequisites
+
 - Node.js 18+
 - PostgreSQL 12+ (local or Azure)
 - npm or yarn
@@ -279,6 +293,7 @@ npm run dev
 ```
 
 This starts both:
+
 - Backend API at http://localhost:5000
 - Frontend at http://localhost:5173
 
@@ -405,6 +420,7 @@ UPDATE users SET role = 'Super Admin' WHERE email = 'your-email@who.int';
 ## 📊 Database Schema
 
 ### Core Tables
+
 - `users` - User accounts with roles and authentication
 - `orders` - Order headers with status and workflow
 - `order_items` - Order line items with fulfillment tracking
@@ -415,11 +431,13 @@ UPDATE users SET role = 'Super Admin' WHERE email = 'your-email@who.int';
 - `countries` - 54 African countries by region
 
 ### Fulfillment & Shipping
+
 - `order_item_fulfillments` - Per-warehouse fulfillment records
 - `shipments` - Shipment headers with tracking
 - `shipment_items` - Items in each shipment
 
 ### Procurement
+
 - `suppliers` - Vendor master data
 - `purchase_orders` - PO headers
 - `purchase_order_items` - PO line items
@@ -429,11 +447,13 @@ UPDATE users SET role = 'Super Admin' WHERE email = 'your-email@who.int';
 - `stock_alerts` - Low stock and expiry alerts
 
 ### Communication & Feedback
+
 - `order_messages` - In-order chat messages
 - `order_feedback` - Order feedback records
 - `packaging_checklists` - Packaging verification records
 
 ### Audit & Security
+
 - `login_logs` - Login attempt history
 - `sessions` - Active user sessions
 - `activity_logs` - System activity audit
@@ -442,6 +462,7 @@ UPDATE users SET role = 'Super Admin' WHERE email = 'your-email@who.int';
 ## 📖 Documentation
 
 System documentation with diagrams is available at:
+
 - `docs/HCOMS-Diagrams.html` - Interactive diagrams (open in browser)
 - Database Model (ERD)
 - Actor Activity Diagram

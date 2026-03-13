@@ -3,12 +3,11 @@ import { WHO_BLUE, STATUS_CONFIG } from '../constants';
 import { getStatusStyle, formatDateTime, getTimeElapsed, getPendingDurationClass } from '../utils/helpers';
 import { chatAPI } from '../services/api';
 import StatCard from './StatCard';
-import { adaptedInventory } from '../data/inventory-adapter';
 import { getRealItemImage } from '../lib/real-images';
 import { LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import '../styles/Dashboard.css';
 
-function Dashboard({ stats, role, orders, onViewOrder, currentUser }) {
+function Dashboard({ stats, role, orders, commodities = [], onViewOrder, currentUser }) {
   const [messageCounts, setMessageCounts] = useState({});
   const [showFilters, setShowFilters] = useState(false);
   const [weeksToShow, setWeeksToShow] = useState(8);
@@ -107,10 +106,14 @@ function Dashboard({ stats, role, orders, onViewOrder, currentUser }) {
       "Biomedical Equipment",
       "Cold Chain Equipment",
     ];
-    return adaptedInventory
+    const prioritizedItems = commodities
       .filter(item => importantCategories.includes(item.category))
+      .sort((a, b) => (parseInt(a.stock, 10) || 0) - (parseInt(b.stock, 10) || 0));
+
+    const sourceItems = prioritizedItems.length > 0 ? prioritizedItems : commodities;
+    return sourceItems
       .slice(0, 4);
-  }, []);
+  }, [commodities]);
 
   // Format welcome message with username and country
   const getWelcomeMessage = () => {
